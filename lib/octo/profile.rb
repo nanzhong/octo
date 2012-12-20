@@ -4,7 +4,7 @@ module Octo::Profile
   attr_reader :config
 
   def config_file
-    "#{Dir.home}/.octo"
+    "#{Dir.home}/.octorc"
   end
 
   def list(profile = nil)
