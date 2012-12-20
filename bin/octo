@@ -20,8 +20,6 @@ include GLI::App
 
 program_desc 'Run commands on multiple hosts'
 
-flag [:t,:tasklist], :default_value => File.join(ENV['HOME'],'.todolist')
-
 octo = nil
 pre do |global_opts, command, opts, args|
   octo = Octo.new(opts)
