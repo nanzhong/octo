@@ -1,0 +1,90 @@
+#!/usr/bin/env ruby
+
+require 'gli'
+require 'octo'
+
+# Install signal handlers
+Signal.trap('SIGINT') do
+  exit
+end
+
+Signal.trap('SIGKILL') do
+  exit
+end
+
+Signal.trap('SIGTERM') do
+  exit
+end
+
+include GLI::App
+
+program_desc 'Run commands on multiple hosts'
+
+flag [:t,:tasklist], :default_value => File.join(ENV['HOME'],'.todolist')
+
+octo = nil
+pre do |global_opts, command, opts, args|
+  octo = Octo.new(opts)
+  true
+end
+
+desc 'Manage profiles'
+long_desc 'Manage profile that will be used to run commands. Each profile consists of a set of servers.'
+command :profile do |profile|
+  profile.desc 'List all profiles'
+  profile.long_desc 'List all the profiles that have been previously configured along with their server.'
+  profile.arg_name '[profile]'
+  profile.command :list do |list|
+    list.action do |global_opts, opts, args|
+      if args.empty?
+        octo.list.each do |profile|
+          puts "#{profile}:"
+          octo.config[profile].each do |server|
+            puts "- #{server}"
+          end
+        end
+      else
+        exit_now!("#{args.first} is not a defined profile") unless octo.config.keys.include? args.first
+
+        puts "#{args.first}:"
+        octo.config[args.first].each do |server|
+          puts "- #{server}"
+        end
+      end
+    end
+  end
+
+  profile.desc 'Add a host to a profile'
+  profile.arg_name 'profile server'
+  profile.long_desc 'Add a host to a profile, the host should be specified using the form user@hostname, eg. nan@nine27.com.'
+  profile.command :add do |add|
+    add.action do |global_opts, opts, args|
+      octo.add args[0], args[1]
+    end
+  end
+
+  profile.desc 'Remove a host from a profile'
+  profile.long_desc 'Remove a host from a profile, the host should be specified using the form user@hostname, eg. nan@nine27.com.'
+  profile.arg_name 'profile server'
+  profile.command :rm do |rm|
+    rm.action do |global_opts, opts, args|
+      octo.rm args[0], args[1]
+    end
+  end
+end
+
+desc 'Run a command'
+long_desc 'Run a command in parallel on all configured hosts in the profile, eg.
+octo run cluster_1 \'tail -f /var/log/httpd/error_log\'.'
+command :run do |cmd|
+  cmd.action do |global_opts, tops, args|
+    octo.run args[0], args[1]
+  end
+end
+
+post do |global_opts, command, opts, args|
+  octo.save
+  true
+end
+
+exit run(ARGV)
