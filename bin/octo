@@ -20,6 +20,9 @@ include GLI::App
 
 program_desc 'Run commands on multiple hosts'
 
+desc 'Set the mode tht octo will run in (eg. ssh, mysql)'
+flag [:m, :mode], must_match: /(mysql)|(ssh)/i, default_value: 'ssh', type: String
+
 octo = nil
 pre do |global_opts, command, opts, args|
   octo = Octo.new(opts)
@@ -35,17 +38,19 @@ command :profile do |profile|
   profile.command :list do |list|
     list.action do |global_opts, opts, args|
       if args.empty?
-        octo.list.each do |profile|
+        octo.config[global_opts[:m]].each do |profile, servers|
           puts "#{profile}:"
-          octo.config[profile].each do |server|
+          servers.each do |server|
             puts "- #{server}"
           end
         end
       else
-        exit_now!("#{args.first} is not a defined profile") unless octo.config.keys.include? args.first
+        unless octo.profile_exists? global_opts[:m], args.first
+          exit_now!("#{args.first} is not a defined profile")
+        end
 
         puts "#{args.first}:"
-        octo.config[args.first].each do |server|
+        octo.list(global_opts[:m], args.first).each do |server|
           puts "- #{server}"
         end
       end
@@ -57,7 +62,7 @@ command :profile do |profile|
   profile.long_desc 'Add a host to a profile, the host should be specified using the form user@hostname, eg. nan@nine27.com.'
   profile.command :add do |add|
     add.action do |global_opts, opts, args|
-      octo.add args[0], args[1]
+      octo.add global_opts[:m], args[0], args[1]
     end
   end
 
@@ -66,7 +71,11 @@ command :profile do |profile|
   profile.arg_name 'profile server'
   profile.command :rm do |rm|
     rm.action do |global_opts, opts, args|
-      octo.rm args[0], args[1]
+      unless octo.profile_exists? global_opts[:m], args.first
+        exit_now!("#{args.first} is not a defined profile")
+      end
+
+      octo.rm global_opts[:m], args[0], args[1]
     end
   end
 end
@@ -76,7 +85,17 @@ long_desc 'Run a command in parallel on all configured hosts in the profile, eg.
 octo run cluster_1 \'tail -f /var/log/httpd/error_log\'.'
 command :run do |cmd|
   cmd.action do |global_opts, tops, args|
-    octo.run args[0], args[1]
+    unless octo.profile_exists? global_opts[:m], args.first
+      exit_now!("#{args.first} is not a defined profile")
+    end
+
+    case global_opts[:m]
+    when 'ssh'
+      octo.run_ssh args[0], args[1]
+    when 'mysql'
+      exit_now!("No query specified") if args[1].nil? || args[1].empty?
+      octo.run_mysql args[0], args[1]
+    end
   end
 end
 
