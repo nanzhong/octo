@@ -24,9 +24,15 @@ class Octo
         session.use server
       end
 
+      buffer = Hash.new("")
       session.exec command do |ch, stream, data|
         data.lines.each do |line|
           stream = stream == :stderr ? $stderr : $stdout
+          buffer[ch] += line
+        end
+        lines = buffer[ch].split("\n")
+        buffer[ch] = lines.pop
+        lines.each do |line|
           stream.puts "[#{green(ch.properties[:server].to_s)}] #{line}"
         end
       end
