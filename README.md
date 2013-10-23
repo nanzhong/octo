@@ -103,7 +103,7 @@ Octo also has experimental support for running queries in parallel
 
     $ octo -m mysql run prod_shards 'select username, email, first_name, last_name from users where username like "nan.%"'
 
-    Running query on prod_user:superpassword@shard1.server.com/db_shard_1... 6 results
+    Running query on prod_user:superpassword@shard1.server.com/db_shard_1... 1 results
     +-------------+-------------------------+------------+--------------+
     | username    | email                   | first_name | last_name    |
     +-------------+-------------------------+------------+--------------+
