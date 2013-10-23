@@ -38,8 +38,8 @@ command :profile do |profile|
   profile.command :list do |list|
     list.action do |global_opts, opts, args|
       if args.empty?
-        octo.config[global_opts[:m]].each do |profile, servers|
-          puts "#{profile}:"
+        octo.config[global_opts[:m]].each do |prof, servers|
+          puts "#{prof}:"
           servers.each do |server|
             puts "- #{server}"
           end
