@@ -29,6 +29,7 @@ class Octo
         data.each_line do |line|
           stream.puts "[#{green(ch.properties[:server].to_s)}] #{line}"
         end
+        stream.flush
       end
       session.loop
     end
