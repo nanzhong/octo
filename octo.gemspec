@@ -2,7 +2,7 @@ Gem::Specification.new do |s|
   s.name         = 'octo'
   s.summary      = 'Run commands in parallel on multiple hosts'
   s.description  = 'A lightweight script that allows you to run commands in parallel on multiple hosts'
-  s.version      = '0.0.7'
+  s.version      = '0.0.8'
   s.author       = 'Nan Zhong'
   s.email        = 'nan@nine27.com'
   s.homepage     = 'https://github.com/nanzhong/octo'
